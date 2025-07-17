@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daftar Surat Al-Qur'an</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(to bottom right, #e9ecef, #f8f9fa);
+      font-family: Arial, sans-serif;
+    }
+    h2 {
+      font-weight: bold;
+    }
+    .card.surat-card {
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-radius: 12px;
+      background-color: white;
+      border: 2px solid #198754;
+    }
+    .card.surat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    .search-box {
+      max-width: 400px;
+      margin: 0 auto 30px auto;
+    }
+  </style>
+</head>
+<body class="bg-light">
+  <div class="container py-5">
+    <h2 class="text-center mb-4">Daftar Surat Al-Qur'an</h2>
+    <input type="text" id="searchInput" class="form-control search-box" placeholder="Cari nama surat atau arti...">
+    <div id="daftar-surat" class="row g-3 mt-4"></div>
+  </div>
+
+  <script>
+    // array untuk menyimpan semua surat
+    let allSurat = [];
+
+    // ambil data surat dari API
+    fetch('https://equran.id/api/surat')
+      .then(res => res.json())
+      .then(data => {
+        allSurat = data;
+        renderSurat(data);
+      })
+      .catch(err => {
+        console.error('Gagal mengambil data:', err);
+        document.getElementById('daftar-surat').innerHTML =
+          '<p class="text-danger">Gagal memuat daftar surat. Cek koneksi atau coba lagi nanti.</p>';
+      });
+
+    // fungsi menampilkan kartu surat
+    function renderSurat(data) {
+      const container = document.getElementById('daftar-surat');
+      container.innerHTML = '';
+      data.forEach(surat => {
+        const col = document.createElement('div');
+        col.className = 'col-12 col-sm-6 col-md-4 col-lg-3';
+        col.innerHTML = `
+          <div class="card surat-card h-100 p-3">
+            <h5 class="card-title mb-1">${surat.nomor}. ${surat.nama_latin}</h5>
+            <p class="text-muted mb-2">${surat.arti} • ${surat.jumlah_ayat} ayat</p>
+            <div class="text-end fw-bold fs-4">${surat.nama}</div>
+          </div>
+        `;
+        col.querySelector('.card').onclick = () => {
+          window.location.href = 'surat.html?nomor=' + surat.nomor;
+        };
+        container.appendChild(col);
+      });
+    }
+
+    // fitur pencarian
+    document.getElementById('searchInput').addEventListener('input', function () {
+      const keyword = this.value.toLowerCase();
+      const filtered = allSurat.filter(surat =>
+        surat.nama_latin.toLowerCase().includes(keyword) ||
+        surat.arti.toLowerCase().includes(keyword) ||
+        surat.nomor.toString() === keyword
+      );
+      renderSurat(filtered);
+    });
+  </script>
+</body>
+</html>
